@@ -344,7 +344,7 @@
 
 <div class="stats-bar">
   <div class="stat-card total">
-    <div class="stat-number" id="totalCount">88</div>
+    <div class="stat-number" id="totalCount">81</div>
     <div class="stat-label">Total Items</div>
   </div>
   <div class="stat-card done">
@@ -352,7 +352,7 @@
     <div class="stat-label">Completed</div>
   </div>
   <div class="stat-card pending">
-    <div class="stat-number" id="pendingCount">88</div>
+    <div class="stat-number" id="pendingCount">81</div>
     <div class="stat-label">Remaining</div>
   </div>
 </div>
@@ -360,7 +360,7 @@
 <div class="progress-container">
   <div class="progress-info">
     <span id="progressLabel">0% Complete</span>
-    <span id="progressCount">0 / 88</span>
+    <span id="progressCount">0 / 81</span>
   </div>
   <div class="progress-bar">
     <div class="progress-fill" id="progressFill" style="width: 0%"></div>
@@ -368,7 +368,7 @@
 </div>
 
 <div class="filter-bar">
-  <button class="filter-btn active" onclick="setFilter('all')">All (88)</button>
+  <button class="filter-btn active" onclick="setFilter('all')">All (81)</button>
   <button class="filter-btn" onclick="setFilter('pending')">Pending</button>
   <button class="filter-btn" onclick="setFilter('done')">Done</button>
   <button class="filter-btn" onclick="setFilter('responded')">Has Response</button>
@@ -477,18 +477,6 @@ const COMMENTS = {
       { id: "F56", page: "92", text: "Need to see design intent, foliage species and shop drawing." }
     ]
   },
-  melanie: {
-    title: "Melanie Li Comments (April 8 Email)",
-    items: [
-      { id: "M01", page: "1", text: "Don't say \"RCP not available and will be provided in shop drawings.\" Direct them to the RCP on the architectural set, and upload latest architectural set to LOBO." },
-      { id: "M02", page: "17-20", text: "Add a note stating that the staircase was VE-ed and to reference the V16 presentation for updated renderings." },
-      { id: "M03", page: "24", text: "Put responses in blue for the first 2 items." },
-      { id: "M04", page: "42", text: "Remove cloud." },
-      { id: "M05", page: "\u2014", text: "Upload revised presentation, tagged FF&E plan + specs, and architectural set once items above are completed." },
-      { id: "M06", page: "\u2014", text: "What is the date on the latest architectural set?" },
-      { id: "M07", page: "\u2014", text: "Haven't seen the tagged FF&E plan and specs. Upload to LOBO today." }
-    ]
-  }
 };
 
 let currentFilter = 'all';
