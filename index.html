@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCBH Comment Tracker — Ritz-Carlton Bal Harbour</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .header {
+    text-align: center;
+    padding: 30px 0 10px;
+  }
+
+  .header h1 {
+    font-size: 2em;
+    font-weight: 900;
+    background: linear-gradient(135deg, #4ecdc4, #5b8def, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+  }
+
+  .header .subtitle {
+    color: #666;
+    font-size: 0.85em;
+    margin-top: 4px;
+  }
+
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 20px 0 25px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    background: #161616;
+    border: 1px solid #222;
+    border-radius: 16px;
+    padding: 14px 22px;
+    text-align: center;
+    min-width: 110px;
+  }
+
+  .stat-card.total { border-color: #5b8def; }
+  .stat-card.done { border-color: #4ecdc4; }
+  .stat-card.pending { border-color: #f7c948; }
+
+  .stat-number {
+    font-size: 2em;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .stat-card.total .stat-number { color: #5b8def; }
+  .stat-card.done .stat-number { color: #4ecdc4; }
+  .stat-card.pending .stat-number { color: #f7c948; }
+
+  .stat-label {
+    font-size: 0.72em;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  .progress-container {
+    max-width: 700px;
+    margin: 0 auto 25px;
+    padding: 0 20px;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    color: #666;
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    height: 8px;
+    background: #222;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4ecdc4, #5b8def);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  .filter-bar {
+    max-width: 700px;
+    margin: 0 auto 20px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .filter-btn {
+    background: #161616;
+    border: 1px solid #333;
+    color: #888;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.78em;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover { border-color: #5b8def; color: #5b8def; }
+  .filter-btn.active { background: #1a2a4a; border-color: #5b8def; color: #5b8def; }
+
+  .section {
+    max-width: 700px;
+    margin: 0 auto 30px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #161616;
+    border: 1px solid #222;
+    border-radius: 14px 14px 0 0;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-header:hover { background: #1c1c1c; }
+
+  .section-header h2 {
+    font-size: 1em;
+    font-weight: 700;
+    color: #ccc;
+  }
+
+  .section-count {
+    font-size: 0.8em;
+    color: #4ecdc4;
+    font-weight: 700;
+  }
+
+  .section-body {
+    border: 1px solid #222;
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
+  }
+
+  .section.collapsed .section-body { display: none; }
+  .section.collapsed .section-header { border-radius: 14px; }
+
+  .comment-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 16px;
+    border-bottom: 1px solid #1a1a1a;
+    gap: 12px;
+    transition: background 0.2s;
+  }
+
+  .comment-row:last-child { border-bottom: none; }
+  .comment-row:hover { background: #1a1a1a; }
+  .comment-row.done-row { opacity: 0.5; }
+
+  .comment-check {
+    width: 22px;
+    height: 22px;
+    appearance: none;
+    border: 2px solid #333;
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.2s;
+    margin-top: 2px;
+  }
+
+  .comment-check:checked {
+    background: #4ecdc4;
+    border-color: #4ecdc4;
+  }
+
+  .comment-check:checked::after {
+    content: '\2713';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #0a0a0a;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .comment-id {
+    font-size: 0.75em;
+    font-weight: 700;
+    color: #5b8def;
+    min-width: 36px;
+    margin-top: 3px;
+  }
+
+  .comment-page {
+    font-size: 0.7em;
+    font-weight: 600;
+    color: #f7c948;
+    background: #2a2a1a;
+    padding: 2px 8px;
+    border-radius: 10px;
+    min-width: 38px;
+    text-align: center;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .comment-content { flex: 1; }
+
+  .comment-text {
+    font-size: 0.85em;
+    line-height: 1.4;
+    color: #ccc;
+  }
+
+  .comment-response {
+    font-size: 0.8em;
+    color: #4ecdc4;
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: #0f1f1f;
+    border-radius: 8px;
+    border-left: 3px solid #4ecdc4;
+    display: none;
+  }
+
+  .comment-response.has-response { display: block; }
+
+  .response-input {
+    width: 100%;
+    background: #111;
+    border: 1px solid #333;
+    color: #e0e0e0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 0.8em;
+    font-family: 'Inter', sans-serif;
+    margin-top: 6px;
+    resize: vertical;
+    min-height: 36px;
+    display: none;
+  }
+
+  .response-input:focus { outline: none; border-color: #5b8def; }
+
+  .edit-btn {
+    background: none;
+    border: 1px solid #333;
+    color: #666;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7em;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    margin-top: 6px;
+    transition: all 0.2s;
+  }
+
+  .edit-btn:hover { border-color: #5b8def; color: #5b8def; }
+
+  .actions-bar {
+    max-width: 700px;
+    margin: 20px auto;
+    text-align: center;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .action-btn {
+    background: none;
+    border: 1px solid #333;
+    color: #555;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.75em;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .action-btn:hover { border-color: #5b8def; color: #5b8def; }
+  .action-btn.danger:hover { border-color: #ff4444; color: #ff4444; }
+
+  .completion-flash {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 4em;
+    z-index: 100;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.5s ease;
+    opacity: 0;
+  }
+
+  .completion-flash.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+
+  @media (max-width: 480px) {
+    .header h1 { font-size: 1.4em; }
+    .stat-card { padding: 10px 14px; min-width: 85px; }
+    .stat-number { font-size: 1.5em; }
+    .comment-row { padding: 10px 12px; }
+    .comment-id { min-width: 30px; font-size: 0.7em; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>RCBH COMMENT TRACKER</h1>
+  <div class="subtitle">Ritz-Carlton Bal Harbour — MI Feedback Review</div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-card total">
+    <div class="stat-number" id="totalCount">88</div>
+    <div class="stat-label">Total Items</div>
+  </div>
+  <div class="stat-card done">
+    <div class="stat-number" id="doneCount">0</div>
+    <div class="stat-label">Completed</div>
+  </div>
+  <div class="stat-card pending">
+    <div class="stat-number" id="pendingCount">88</div>
+    <div class="stat-label">Remaining</div>
+  </div>
+</div>
+
+<div class="progress-container">
+  <div class="progress-info">
+    <span id="progressLabel">0% Complete</span>
+    <span id="progressCount">0 / 88</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="setFilter('all')">All (88)</button>
+  <button class="filter-btn" onclick="setFilter('pending')">Pending</button>
+  <button class="filter-btn" onclick="setFilter('done')">Done</button>
+  <button class="filter-btn" onclick="setFilter('responded')">Has Response</button>
+</div>
+
+<div id="sectionsContainer"></div>
+
+<div class="actions-bar">
+  <button class="action-btn" onclick="expandAll()">Expand All</button>
+  <button class="action-btn" onclick="collapseAll()">Collapse All</button>
+  <button class="action-btn danger" onclick="resetAll()">Reset All</button>
+</div>
+
+<div class="completion-flash" id="flash">&#10003;</div>
+
+<script>
+const COMMENTS = {
+  v16: {
+    title: "V16 Presentation — Design Development",
+    items: [
+      { id: "V01", page: "8", text: "This finish was rejected during the finish review. Looks too modern with the surrounding finishes. It is not clear how this finish even terminates into the opening." },
+      { id: "V02", page: "12", text: "Would not do tambour. This piece, reception desk and towel drop need to relate to one another. Pivot to bead board to relate to towel drop. Eliminate curve to accommodate bead board design." },
+      { id: "V03", page: "12", text: "Small stainless steel knob will look better with this design, the black hardware stands out too much." },
+      { id: "V04", page: "12", text: "Need discreet outlets on back side of fascia." },
+      { id: "V05", page: "12", text: "What is the height of the work surface? Should be 36\"." },
+      { id: "V06", page: "12", text: "Need to conceal trash bin in here. Refer to operational guidelines for all equipment needs." },
+      { id: "V07", page: "13", text: "Would not do tambour. This piece, reception desk and towel drop need to relate to one another." },
+      { id: "V08", page: "13", text: "Small stainless steel knob will look better with this design, the black hardware stands out too much." },
+      { id: "V09", page: "14", text: "Too pink, refer to previous comments." },
+      { id: "V10", page: "14", text: "This does not match the bead board towel drop cabinet." },
+      { id: "V11", page: "14", text: "Submit slab photo, unclear what this stone actually looks like in large format." },
+      { id: "V12", page: "17", text: "This shower would not be acceptable. Ritz guests need some level of privacy. This is not a luxury level offering." },
+      { id: "V13", page: "17", text: "What is the grab bar design?" },
+      { id: "V14", page: "19", text: "This shower would not be acceptable. Ritz guests need some level of privacy." },
+      { id: "V15", page: "26", text: "Although this table is next to the pool, it still belongs to the bar. It should match the bar finishes." },
+      { id: "V16", page: "30", text: "The specs show a white base for these high top tables which does not make sense for the rendering or the design." },
+      { id: "V17", page: "35", text: "The ceiling fan specified does not work on a sloped ceiling." },
+      { id: "V18", page: "41", text: "The sample looks too pink, more neutral stone recommended." },
+      { id: "V19", page: "42", text: "Submit shop drawing. Ensure this green complements the various other greens in this space." },
+      { id: "V20", page: "43", text: "Would still put a recessed base so things don't roll under and get lost." },
+      { id: "V21", page: "45", text: "Members area should have inverse colors on the same pattern." },
+      { id: "V22", page: "46", text: "This looks outdated. Show the bar finishes." },
+      { id: "V23", page: "50", text: "What are the dimensions surrounding mosaic?" },
+      { id: "V24", page: "51", text: "What is the handrail design?" },
+      { id: "V25", page: "54", text: "Where is the fan switch located? Where is power source for minifridge and outlets?" }
+    ]
+  },
+  ffe: {
+    title: "Tagged FF&E Plan (2026-04-08)",
+    items: [
+      { id: "F01", page: "3", text: "Where in bathroom is this located? Less industrial bin desired." },
+      { id: "F02", page: "10", text: "Show table top design with base." },
+      { id: "F03", page: "11", text: "Show table top design with base." },
+      { id: "F04", page: "11", text: "Design drawing is required. Show table with the banquette in design drawing to ensure they work together." },
+      { id: "F05", page: "12", text: "Design drawing is required. Follow MI design standards for upholstery." },
+      { id: "F06", page: "12", text: "Design drawing is required. Follow MI design standards for casegoods." },
+      { id: "F07", page: "13", text: "Ensure all seat heights work with table or bar counter heights." },
+      { id: "F08", page: "14", text: "What is the seat height?" },
+      { id: "F09", page: "14", text: "2700K is required. 3000K too white." },
+      { id: "F10", page: "14", text: "Is the pergola ceiling sloped?" },
+      { id: "F11", page: "16", text: "Which fabric is going on this chair? Show picture of fabric." },
+      { id: "F12", page: "17", text: "Which fabric is going on this banquette? Show picture of fabric and include spec info." },
+      { id: "F13", page: "24", text: "Base finish needs to complement the other table bases." },
+      { id: "F14", page: "26", text: "Textured wood too rustic to match the established design language. Missing towel station. Monitors should be completely concealed from guest view." },
+      { id: "F15", page: "27", text: "Too rustic, does not match rendering or established design language." },
+      { id: "F16", page: "27", text: "Is this hardwired? Light temp needs to be 2700K or lower." },
+      { id: "F17", page: "28", text: "Why are these on wheels? This is a very modern planter next to traditional planters. Planters need to work together." },
+      { id: "F18", page: "29", text: "Need prototype and finish sample." },
+      { id: "F19", page: "30", text: "Resin will feel cheap. Delete or use a concrete or stone." },
+      { id: "F20", page: "31", text: "Provide drawing and indicate how cushion will tie to chaise." },
+      { id: "F21", page: "34", text: "More elegant coffee table design needed." },
+      { id: "F22", page: "34", text: "What is the base finish? Why is it different from the umbrella on following page?" },
+      { id: "F23", page: "35", text: "What is the base finish? Why is it different from the umbrella on previous page?" },
+      { id: "F24", page: "37", text: "What is drapery hardware? What is drapery fabric? Submit photo. Will this faux teak match other teak finishes on pool deck?" },
+      { id: "F25", page: "39", text: "See previous comments." },
+      { id: "F26", page: "39", text: "Finishes need to be completed and represented at the specification stage." },
+      { id: "F27", page: "39", text: "Why are some chaises RH and some custom? Should all be RH." },
+      { id: "F28", page: "40", text: "Missing critical dimensional info such as seat heights and overall dimensions." },
+      { id: "F29", page: "41", text: "Is this UL listed for wet environments? How is this switched on? Is it hardwired and where is the switch located?" },
+      { id: "F30", page: "41", text: "How does this fit into the cabinet? Show design drawing." },
+      { id: "F31", page: "43", text: "Submit complete specs." },
+      { id: "F32", page: "44", text: "See previous comments." },
+      { id: "F33", page: "45", text: "Need design drawing with dimensions." },
+      { id: "F34", page: "45", text: "Need design drawing with dimensions." },
+      { id: "F35", page: "46", text: "What does this finish relate to? Tambour looks trendy and not classic enough for Ritz." },
+      { id: "F36", page: "48", text: "Need design drawing with dimensions or a specification with details." },
+      { id: "F37", page: "49", text: "Need new drapery hardware, do not repeat the large loop installation per existing." },
+      { id: "F38", page: "50", text: "Missing critical dimensional info." },
+      { id: "F39", page: "52", text: "Show where and how this fits into the casegood drawing." },
+      { id: "F40", page: "55", text: "Missing critical dimensional info." },
+      { id: "F41", page: "56", text: "Same comments." },
+      { id: "F42", page: "56", text: "Same comments." },
+      { id: "F43", page: "57", text: "Same comments." },
+      { id: "F44", page: "57", text: "Same comments." },
+      { id: "F45", page: "58", text: "Same comments." },
+      { id: "F46", page: "70", text: "Can we do the inverse color pattern for members pool?" },
+      { id: "F47", page: "74", text: "Missing critical dimensional info." },
+      { id: "F48", page: "75", text: "Shop drawings and finish samples required." },
+      { id: "F49", page: "75", text: "This spec is missing all info." },
+      { id: "F50", page: "81", text: "What is the size? Submit design drawings." },
+      { id: "F51", page: "87", text: "Provide dimensions so the reception desk height can match. How will this be refinished?" },
+      { id: "F52", page: "88", text: "Design drawings and finish samples required." },
+      { id: "F53", page: "90", text: "This needs to be updated." },
+      { id: "F54", page: "91", text: "Is there another option? Need nicer table." },
+      { id: "F55", page: "91", text: "Shouldn't these colors match the pool deck?" },
+      { id: "F56", page: "92", text: "Need to see design intent, foliage species and shop drawing." }
+    ]
+  },
+  melanie: {
+    title: "Melanie Li Comments (April 8 Email)",
+    items: [
+      { id: "M01", page: "1", text: "Don't say \"RCP not available and will be provided in shop drawings.\" Direct them to the RCP on the architectural set, and upload latest architectural set to LOBO." },
+      { id: "M02", page: "17-20", text: "Add a note stating that the staircase was VE-ed and to reference the V16 presentation for updated renderings." },
+      { id: "M03", page: "24", text: "Put responses in blue for the first 2 items." },
+      { id: "M04", page: "42", text: "Remove cloud." },
+      { id: "M05", page: "\u2014", text: "Upload revised presentation, tagged FF&E plan + specs, and architectural set once items above are completed." },
+      { id: "M06", page: "\u2014", text: "What is the date on the latest architectural set?" },
+      { id: "M07", page: "\u2014", text: "Haven't seen the tagged FF&E plan and specs. Upload to LOBO today." }
+    ]
+  }
+};
+
+let currentFilter = 'all';
+
+function loadData() {
+  return JSON.parse(localStorage.getItem('rcbhTracker') || '{"checked":{},"responses":{}}');
+}
+
+function saveData(data) {
+  localStorage.setItem('rcbhTracker', JSON.stringify(data));
+}
+
+function flash(text) {
+  const el = document.getElementById('flash');
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 600);
+}
+
+function toggleCheck(id) {
+  const data = loadData();
+  if (data.checked[id]) {
+    delete data.checked[id];
+  } else {
+    data.checked[id] = true;
+    flash('\u2713');
+  }
+  saveData(data);
+  updateUI();
+}
+
+function toggleSection(sectionKey) {
+  const el = document.getElementById('section-' + sectionKey);
+  el.classList.toggle('collapsed');
+}
+
+function showResponseInput(id) {
+  const input = document.getElementById('input-' + id);
+  const btn = document.getElementById('editbtn-' + id);
+  if (input.style.display === 'block') {
+    input.style.display = 'none';
+    btn.textContent = 'Add Response';
+  } else {
+    input.style.display = 'block';
+    input.focus();
+    btn.textContent = 'Hide';
+  }
+}
+
+function saveResponse(id) {
+  const input = document.getElementById('input-' + id);
+  const data = loadData();
+  const val = input.value.trim();
+  if (val) {
+    data.responses[id] = val;
+  } else {
+    delete data.responses[id];
+  }
+  saveData(data);
+  updateUI();
+}
+
+function setFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderSections();
+  updateUI();
+}
+
+function expandAll() {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('collapsed'));
+}
+
+function collapseAll() {
+  document.querySelectorAll('.section').forEach(s => s.classList.add('collapsed'));
+}
+
+function resetAll() {
+  if (confirm('Reset ALL tracker data? This cannot be undone.')) {
+    localStorage.removeItem('rcbhTracker');
+    renderSections();
+    updateUI();
+  }
+}
+
+function shouldShow(id, data) {
+  if (currentFilter === 'all') return true;
+  if (currentFilter === 'done') return !!data.checked[id];
+  if (currentFilter === 'pending') return !data.checked[id];
+  if (currentFilter === 'responded') return !!data.responses[id];
+  return true;
+}
+
+function renderSections() {
+  const container = document.getElementById('sectionsContainer');
+  const data = loadData();
+  let html = '';
+
+  for (const [key, section] of Object.entries(COMMENTS)) {
+    const doneCount = section.items.filter(i => data.checked[i.id]).length;
+    const visibleItems = section.items.filter(i => shouldShow(i.id, data));
+
+    html += `<div class="section" id="section-${key}">
+      <div class="section-header" onclick="toggleSection('${key}')">
+        <h2>${section.title}</h2>
+        <span class="section-count">${doneCount} / ${section.items.length}</span>
+      </div>
+      <div class="section-body">`;
+
+    for (const item of visibleItems) {
+      const checked = data.checked[item.id];
+      const response = data.responses[item.id] || '';
+      const hasResponse = response.length > 0;
+
+      html += `<div class="comment-row ${checked ? 'done-row' : ''}">
+        <input type="checkbox" class="comment-check" ${checked ? 'checked' : ''} onchange="toggleCheck('${item.id}')">
+        <div class="comment-id">${item.id}</div>
+        <div class="comment-page">p.${item.page}</div>
+        <div class="comment-content">
+          <div class="comment-text">${item.text}</div>
+          <div class="comment-response ${hasResponse ? 'has-response' : ''}" id="resp-${item.id}">${response}</div>
+          <textarea class="response-input" id="input-${item.id}" placeholder="Type response..." onblur="saveResponse('${item.id}')" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveResponse('${item.id}');this.style.display='none';document.getElementById('editbtn-${item.id}').textContent='Edit';}">${response}</textarea>
+          <button class="edit-btn" id="editbtn-${item.id}" onclick="showResponseInput('${item.id}')">${hasResponse ? 'Edit' : 'Add Response'}</button>
+        </div>
+      </div>`;
+    }
+
+    if (visibleItems.length === 0) {
+      html += `<div class="comment-row" style="justify-content:center; color:#555; font-size:0.85em;">No items match this filter</div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function updateUI() {
+  const data = loadData();
+  let total = 0;
+  let done = 0;
+
+  for (const section of Object.values(COMMENTS)) {
+    total += section.items.length;
+    done += section.items.filter(i => data.checked[i.id]).length;
+  }
+
+  const pending = total - done;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('doneCount').textContent = done;
+  document.getElementById('pendingCount').textContent = pending;
+  document.getElementById('progressLabel').textContent = pct + '% Complete';
+  document.getElementById('progressCount').textContent = done + ' / ' + total;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  // Update section counts without full re-render
+  for (const [key, section] of Object.entries(COMMENTS)) {
+    const countEl = document.querySelector(`#section-${key} .section-count`);
+    if (countEl) {
+      const doneCount = section.items.filter(i => data.checked[i.id]).length;
+      countEl.textContent = `${doneCount} / ${section.items.length}`;
+    }
+  }
+
+  // Update row styling
+  for (const section of Object.values(COMMENTS)) {
+    for (const item of section.items) {
+      const respEl = document.getElementById('resp-' + item.id);
+      if (respEl) {
+        const response = data.responses[item.id] || '';
+        respEl.textContent = response;
+        respEl.classList.toggle('has-response', response.length > 0);
+      }
+      const btnEl = document.getElementById('editbtn-' + item.id);
+      if (btnEl) {
+        const response = data.responses[item.id] || '';
+        if (document.getElementById('input-' + item.id).style.display !== 'block') {
+          btnEl.textContent = response ? 'Edit' : 'Add Response';
+        }
+      }
+    }
+  }
+}
+
+// Init
+renderSections();
+updateUI();
+</script>
+</body>
+</html>
